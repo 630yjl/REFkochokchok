@@ -20,7 +20,7 @@ const fetchCommunityPosts = async () => {
     const token = getAccessToken();
     if (!token) throw new Error("토큰이 없습니다. 로그인이 필요합니다.");
 
-    const response = await fetch(`http://3.36.40.240:8001/api/community`, {
+    const response = await fetch(`/api/community`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -68,12 +68,7 @@ export default function CommunityBoard() {
 
   return (
     <>
-      <div className=" mx-auto bg-gray-50 min-h-screen">
-        {/* Header */}
-        <div className="sticky top-0 bg-white shadow-sm p-4 border-b z-10">
-          <h1 className="text-xl font-bold text-center">커뮤니티</h1>
-        </div>
-
+      <div className=" mx-auto bg-gray-50">
         {/* 로딩 중일 때 표시 */}
         {loading && (
           <div className="text-center py-10">⏳ 게시글 불러오는 중...</div>

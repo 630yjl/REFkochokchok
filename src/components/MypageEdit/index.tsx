@@ -5,10 +5,9 @@
  * 프로필 수정 컴포넌트
  *
  * ✨ 주요 기능:
- * 1. 프로필 이미지 관리
+ * 1. 프로필 이미지 관리 - ProfileImageManager 컴포넌트로 분리
  *   - 이미지 업로드/수정/삭제
- *   - 카메라 아이콘 오버레이
- *   - BottomSheetModal 연동
+ *   - 이미지 관리 로직과 UI 분리
  *
  * 2. 닉네임 수정
  *   - 입력값 유효성 검사
@@ -24,29 +23,27 @@
  *   - 회원탈퇴
  *
  * 🔄 수정사항 (2024.02.14):
- * 1. 이미지 처리 로직 개선
+ * 1. 이미지 처리 로직 개선 및 분리
+ *   - ProfileImageManager 컴포넌트 도입
+ *   - 이미지 상태 관리 최적화
  * 2. 컴포넌트 구조 최적화
  * 3. 에러 처리 강화
  * 4. 접근성 개선
  */
 
-import { useRef, useState, useCallback } from "react";
+import { useRef } from "react";
 import Image from "next/image";
 import Button from "@/commons/Button";
 import Input from "@/commons/input";
 import Modal from "@/commons/Modal";
-import BottomSheetModal from "@/commons/BottomSheetModal";
 import { useProfileEdit } from "./hook";
+import ProfileImageManager from "@/components/MypageEdit/ProfileImageManager";
 
-// 아이콘 imports 👇
+// 아이콘 imports 
 import CheckIcon from "@/../public/icons/signup_check_disabled_icon_24px.svg";
 import CheckValidIcon from "@/../public/icons/signup_check_valid_icon_24px.svg";
 import CollapseIcon from "@/../public/icons/editAccount_collapse_24px.svg";
 import ExpandIcon from "@/../public/icons/editAccount_expand_24px.svg";
-import CameraIcon from "@/../public/images/profileEdit_camera.svg";
-
-// 상수 정의
-const DEFAULT_PROFILE_IMAGE = "/images/profileEdit_Img_upload_btn_img.svg";
 
 /**
  * 비밀번호 유효성 검사 아이템 컴포넌트
@@ -102,87 +99,8 @@ export default function ProfileEdit() {
     getButtonText,
   } = useProfileEdit();
 
-  // 🎯 Refs & State
+  // 🎯 Refs
   const passwordSectionRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-
-  /**
-   * 파일 입력 핸들러
-   * 🔄 이미지 업로드 로직 개선
-   */
-  const onFileChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      try {
-        const selectedFile = e.target.files?.[0];
-        if (!selectedFile) return;
-
-        // 🔍 파일 유효성 검사
-        if (selectedFile.size > 5 * 1024 * 1024) {
-          alert("파일 크기는 5MB를 초과할 수 없습니다.");
-          return;
-        }
-
-        if (!selectedFile.type.startsWith("image/")) {
-          alert("이미지 파일만 업로드 가능합니다.");
-          return;
-        }
-
-        // 📤 이미지 변경 핸들러 호출
-        handleImageChange(selectedFile);
-      } catch (error) {
-        console.error("[ProfileImage] 파일 업로드 실패:", error);
-        alert("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
-      } finally {
-        // 🧹 입력 필드 초기화
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      }
-    },
-    [handleImageChange]
-  );
-
-  /**
-   * 📸 이미지 처리 핸들러
-   */
-  const handleImageError = useCallback(
-    (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-      const target = e.target as HTMLImageElement;
-      if (target.src.includes(DEFAULT_PROFILE_IMAGE)) return;
-      target.src = DEFAULT_PROFILE_IMAGE;
-    },
-    []
-  );
-
-  const handleProfileImageClick = useCallback(() => {
-    if (!user?.profileImage && !tempImageUrl) {
-      fileInputRef.current?.click();
-    } else {
-      setIsBottomSheetOpen(true);
-    }
-  }, [user?.profileImage, tempImageUrl]);
-
-  /**
-   * 🔽 바텀시트 메뉴 아이템 정의
-   */
-  const bottomSheetMenuItems = [
-    {
-      label: "내 앨범에서 선택",
-      onClick: () => fileInputRef.current?.click(),
-      type: "default" as const,
-    },
-    {
-      label: "프로필 이미지 삭제",
-      onClick: handleImageDelete,
-      type: "danger" as const,
-    },
-    {
-      label: "창 닫기",
-      onClick: () => setIsBottomSheetOpen(false),
-      type: "cancel" as const,
-    },
-  ];
 
   // 비밀번호 유효성 검사 결과
   const passwordValidation = validatePassword(newPassword);
@@ -191,46 +109,18 @@ export default function ProfileEdit() {
     <div className="min-h-screen flex flex-col">
       <main className="w-full px-5 pt-12 pb-24 flex flex-col space-y-7">
         <section className="space-y-7">
-          {/* 프로필 이미지 영역 */}
+          {/* 프로필 이미지 영역 - 분리된 컴포넌트 사용 */}
           <div className="grid gap-[1.375rem]">
             <h2 className="text-sm-bold">프로필 정보 수정</h2>
-            <div className="flex justify-center">
-              <div className="relative w-[100px] h-[100px]">
-                <button
-                  onClick={handleProfileImageClick}
-                  className="w-full h-full relative"
-                >
-                  <Image
-                    src={
-                      tempImageUrl
-                        ? tempImageUrl
-                        : user?.profileImage || DEFAULT_PROFILE_IMAGE
-                    }
-                    alt="프로필 이미지"
-                    fill
-                    priority
-                    onError={handleImageError}
-                    className="rounded-full object-cover"
-                  />
-                  {/* 조건문 제거하여 항상 카메라 아이콘이 표시되도록 함 */}
-                  <div className="absolute right-0 bottom-0 w-7 h-7 flex items-center justify-center">
-                    <Image
-                      src={CameraIcon}
-                      alt="카메라 아이콘"
-                      width={28}
-                      height={28}
-                    />
-                  </div>
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={onFileChange}
-                />
-              </div>
-            </div>
+            
+            {/* 👇 ProfileImageManager 컴포넌트로 대체 */}
+            <ProfileImageManager
+              currentImageUrl={user?.profileImage}
+              tempImageUrl={tempImageUrl}
+              onImageChange={handleImageChange}
+              onImageDelete={handleImageDelete}
+              isLoading={isLoading}
+            />
           </div>
 
           {/* 닉네임 변경 영역 */}
@@ -238,7 +128,7 @@ export default function ProfileEdit() {
             <label htmlFor="nickname" className="text-sm-bold">
               닉네임
             </label>
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-3">
               {/* 🔑 Input을 감싸는 래퍼 div 추가 */}
               <div className="flex-1">
                 <Input
@@ -331,12 +221,12 @@ export default function ProfileEdit() {
               </div>
 
               {/* 버튼 영역 */}
-              <div className="flex gap-4 mt-4">
+              <div className="flex gap-3 mt-4">
                 <Button
                   design="design2"
                   width="fit" // 🔑 중요: width를 'fit'으로 변경
                   onClick={() => setIsPasswordFormVisible(false)}
-                  className="w-1/4 h-12" // Tailwind로 추가 너비 조정
+                  className="w-[30%] h-12" // Tailwind로 추가 너비 조정
                 >
                   <Image src={ExpandIcon} alt="" width={24} height={24} />
                   <span>취소</span>
@@ -394,13 +284,6 @@ export default function ProfileEdit() {
         title="비밀번호 변경 성공"
         description={`비밀번호가 변경되었습니다\n로그인을 다시 해주세요`}
         confirmText="확인"
-      />
-
-      {/* 프로필 이미지 관리 바텀시트 */}
-      <BottomSheetModal
-        isOpen={isBottomSheetOpen}
-        onClose={() => setIsBottomSheetOpen(false)}
-        menuItems={bottomSheetMenuItems}
       />
     </div>
   );

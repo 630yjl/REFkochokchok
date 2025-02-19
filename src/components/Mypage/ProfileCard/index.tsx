@@ -73,6 +73,7 @@ export default function ProfileCard({ onEditClick }: ProfileCardProps) {
               src={userInfo.profileImage || PROFILE_CONSTANTS.DEFAULT_IMAGE}
               alt={`${userInfo.name} 프로필 사진`}
               fill // 🔑 중요: fill 속성 추가
+              sizes="48px" // 이미지 실제 크기에 맞게 설정
               className="object-cover" // object-cover 유지
               priority
             />

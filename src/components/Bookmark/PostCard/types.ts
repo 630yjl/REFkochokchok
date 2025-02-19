@@ -97,6 +97,8 @@ export type Post = WishlistedPost | BookmarkedPost ;
 export interface PostCardProps {
   post: Post;
   onPostClick: (id: number) => void;
+  onToggleLike?: (postId: number, isLiked: boolean) => void;
+  onToggleBookmark?: (postId: number, isBookmarked: boolean) => void;
 }
 
 /**

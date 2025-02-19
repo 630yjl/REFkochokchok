@@ -15,6 +15,11 @@
  * 2. 스타일 시스템 적용 (globals.css, tailwind.config 활용)
  * 3. px to rem 변환 적용
  * 4. Input, Button 컴포넌트 스타일 최적화
+ * 
+ * 수정사항 (2024.02.16):
+ * 1. 에러 메시지 처리 로직 개선
+ * 2. 입력 필드 변경 시 에러 메시지 초기화
+ * 3. 중복 에러 메시지 표시 방지
  */
 
 import Image from "next/image";
@@ -28,7 +33,7 @@ import type { LoginFormData, LoginFormField } from "./types";
 
 export default function LoginComponent() {
   const router = useRouter();
-  const { form, isLoading, onSubmit } = useLogin();
+  const { form, isLoading, onSubmit, loginMessage, setLoginMessage } = useLogin();
   const { formState: { errors, isValid }, control } = form;
 
   return (
@@ -58,10 +63,17 @@ export default function LoginComponent() {
                 <Input
                   type="email"
                   placeholder="이메일"
-                   
-                  error={errors.email?.message}
-                  className=" w-full"
+                  error={
+                    loginMessage?.type === "error"
+                      ? undefined
+                      : errors.email?.message
+                  }
+                  className="w-full"
                   {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    setLoginMessage(null); // 새로운 입력 시 에러 메시지 초기화
+                  }}
                 />
               )}
             />
@@ -74,16 +86,24 @@ export default function LoginComponent() {
                 <Input
                   type="password"
                   placeholder="비밀번호"
-                  error={errors.password?.message}
+                  error={
+                    loginMessage?.type === "error"
+                      ? undefined
+                      : errors.password?.message
+                  }
                   className="w-full"
                   {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    setLoginMessage(null); // 새로운 입력 시 에러 메시지 초기화
+                  }}
                 />
               )}
             />
 
-            {/* 에러 메시지 */}
-            {errors.root && (
-              <span className="text-error-message">{errors.root.message}</span>
+            {/* 로그인 에러 메시지 */}
+            {loginMessage?.type === "error" && (
+              <span className="text-error-message">{loginMessage.message}</span>
             )}
 
             {/* 로그인 버튼 */}
@@ -102,7 +122,6 @@ export default function LoginComponent() {
             design="design4"
             width="fit"
             onClick={() => router.push("/signup")}
-            
           >
             회원가입
           </Button>
@@ -111,26 +130,3 @@ export default function LoginComponent() {
     </div>
   );
 }
-
-/**
- * 스타일 가이드:
- * 
- * 1. tailwind.config.ts 컬러 시스템
- * - bg-loginpage-bg: #FCFEF5 (로그인 페이지 배경)
- * - bg-background: #FEFEFE (입력 필드 배경)
- * - border-list-line: #E9E8E3 (입력 필드 테두리)
- * 
- * 2. globals.css text 스타일
- * - text-placeholder: 플레이스홀더 텍스트 스타일
- * - text-base-bold: 버튼 텍스트 스타일
- * - text-sm-medium-quaternary: 회원가입 링크 스타일
- * - text-error-message: 에러 메시지 스타일
- * 
- * 3. px to rem 변환 (1rem = 16px)
- * - 20px -> 1.25rem (padding)
- * - 60px -> 3.75rem (gap)
- * - 28px -> 1.75rem (gap)
- * - 16px -> 1rem (padding)
- * - 201px -> 12.5625rem (width)
- * - 126px -> 7.875rem (height)
- */

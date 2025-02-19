@@ -1,20 +1,9 @@
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {
-//   // experimental: {
-//   //   appDir: true, // app 디렉토리 활성화
-//   // },
-//   eslint: {
-//     ignoreDuringBuilds: true,
-//   },
-//   images: {
-//     domains: ["ko-chock-chock.s3.ap-northeast-2.amazonaws.com"],
-//   },
-// };
-
-// export default nextConfig;
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -31,6 +20,10 @@ const nextConfig = {
       {
         source: "/api/:path*",
         destination: "http://3.36.40.240:8001/api/:path*",
+      },
+      {
+        source: "/ws",
+        destination: "http://3.36.40.240:8001/ws",
       },
     ];
   },

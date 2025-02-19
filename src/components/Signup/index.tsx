@@ -79,7 +79,7 @@ export default function SignUpComponent() {
                   <Input
                     {...field}
                     type="email"
-                    placeholder="abc@naver.com"
+                    placeholder="abc@kochokchok.com"
                     error={
                       emailMessage?.type === "error"
                         ? undefined
@@ -120,7 +120,7 @@ export default function SignUpComponent() {
                   <Input
                     {...field}
                     type="text"
-                    placeholder="철수"
+                    placeholder="코촉촉"
                     error={
                       nameMessage?.type === "error"
                         ? undefined

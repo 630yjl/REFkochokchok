@@ -14,15 +14,12 @@ const getPostById = async (postId: number) => {
 
     if (!token) throw new Error("토큰이 없습니다. 로그인이 필요합니다.");
 
-    const response = await fetch(
-      `http://3.36.40.240:8001/api/community/${postId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(`/api/community/${postId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!response.ok) throw new Error(`게시글 조회 실패: ${response.status}`);
 

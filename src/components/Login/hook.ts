@@ -15,6 +15,11 @@
  * - API 응답 타입 정확히 정의
  * - 에러 처리 강화
  * - 디버깅 로그 개선
+ * 
+ * 수정사항 (2024.02.16):
+ * - 로그인 메시지 상태 관리 추가
+ * - 에러 메시지 중복 표시 방지
+ * - 입력 시 에러 메시지 초기화 로직 추가
  */
 
 import { useState } from "react";
@@ -52,6 +57,10 @@ export const useLogin = () => {
   const router = useRouter();
   const { setUser } = useUserStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [loginMessage, setLoginMessage] = useState<{
+    type: "error";
+    message: string;
+  } | null>(null);
 
   // 폼 초기화
   const form = useForm<LoginFormData>({
@@ -112,6 +121,7 @@ export const useLogin = () => {
    */
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
+    setLoginMessage(null); // 로그인 시도 시 이전 메시지 초기화
     try {
       // 1. 로그인 API 호출
       console.log("[Login] 로그인 시도:", { email: data.email });
@@ -124,7 +134,11 @@ export const useLogin = () => {
       // 2. 에러 응답 처리
       if (!loginResponse.ok) {
         const errorData: LoginErrorResponse = await loginResponse.json();
-        throw new Error(errorData.message || "로그인에 실패했습니다");
+        setLoginMessage({
+          type: "error",
+          message: errorData.message || "로그인에 실패했습니다"
+        });
+        return;
       }
 
       // 3. 성공 응답 처리
@@ -156,11 +170,11 @@ export const useLogin = () => {
       router.push("/");
     } catch (error) {
       console.error("[Login] 에러 발생:", error);
-      form.setError("root", {
-        message:
-          error instanceof Error
-            ? error.message
-            : "로그인 처리 중 오류가 발생했습니다",
+      setLoginMessage({
+        type: "error",
+        message: error instanceof Error
+          ? error.message
+          : "로그인 처리 중 오류가 발생했습니다"
       });
     } finally {
       setIsLoading(false);
@@ -171,37 +185,7 @@ export const useLogin = () => {
     form,
     isLoading,
     onSubmit: form.handleSubmit(onSubmit),
+    loginMessage,
+    setLoginMessage,
   };
 };
-
-/**
- * 사용 예시:
- *
- * ```tsx
- * function LoginPage() {
- *   const { form, isLoading, onSubmit } = useLogin();
- *
- *   return (
- *     <form onSubmit={onSubmit}>
- *       <input {...form.register("email")} />
- *       {form.formState.errors.email && (
- *         <span>{form.formState.errors.email.message}</span>
- *       )}
- *
- *       <input type="password" {...form.register("password")} />
- *       {form.formState.errors.password && (
- *         <span>{form.formState.errors.password.message}</span>
- *       )}
- *
- *       <button type="submit" disabled={isLoading}>
- *         {isLoading ? "로그인 중..." : "로그인"}
- *       </button>
- *
- *       {form.formState.errors.root && (
- *         <div>{form.formState.errors.root.message}</div>
- *       )}
- *     </form>
- *   );
- * }
- * ```
- */

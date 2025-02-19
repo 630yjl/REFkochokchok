@@ -18,11 +18,16 @@ export type PostCountsType = Record<TabType, number>;
  * @property {function} onTabChange - 탭 변경 핸들러 함수
  * @property {PostCountsType} postCounts - 각 탭별 게시글 수
  */
+// export interface TabGroupProps {
+//   currentTab: TabType;
+//   onTabChange: (tab: TabType) => void;
+//   // 각 상태별 게시글 수
+//   postCounts: Record<TabType, number>;
+// }
 export interface TabGroupProps {
   currentTab: TabType;
   onTabChange: (tab: TabType) => void;
-  // 각 상태별 게시글 수
-  postCounts: Record<TabType, number>;
+  postCounts: PostCountsType;
 }
 
 /**

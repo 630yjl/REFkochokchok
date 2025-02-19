@@ -139,11 +139,28 @@ const useJobBoardEdit = () => {
     }
   };
 
+  // 파일 이름을 sanitize하는 함수
+  const sanitizeFileName = (fileName: string): string => {
+    // 영문, 숫자, 점(.), 밑줄(_), 대시(-)를 제외한 모든 문자를 언더스코어(_)로 치환
+    return fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
       const fileArray = Array.from(files);
-      setValue("newImages", fileArray, { shouldValidate: true });
+      const sanitizedFiles = fileArray.map((file) => {
+        const newName = sanitizeFileName(file.name);
+        if (newName !== file.name) {
+          return new File([file], newName, { type: file.type });
+        }
+        return file;
+      });
+      const existingFiles = watch("newImages") || [];
+      setValue("newImages", [...existingFiles, ...sanitizedFiles], {
+        shouldValidate: true,
+      });
+      event.target.value = "";
     }
   };
 

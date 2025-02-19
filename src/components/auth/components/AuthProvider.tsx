@@ -5,27 +5,14 @@ import { usePathname, useParams, useRouter } from "next/navigation";
 import { useEffect, useCallback, useRef } from "react";
 import { TokenStorage } from "../utils/tokenUtils";
 import { useUserStore } from "@/commons/store/userStore";
-import type { 
-  TradeData, 
-  CommunityResponseData, 
+import { 
+  CommunityResponseData,
+  CachedBoardData,
+  BoardApiResponse,
+  AuthProviderProps 
 } from "../types/auth";
 
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
 
-// 게시글 데이터 캐시 인터페이스
-interface CachedBoardData {
-  userId: number;
-  data: TradeData;
-  timestamp: number;
-}
-
-// API 응답 인터페이스
-interface BoardApiResponse {
-  message: string;
-  data: TradeData | null;
-}
 
 // 권한 필요 경로 패턴 - 정확한 URL 매칭을 위해 수정
 const PROTECTED_PATHS = {

@@ -26,15 +26,12 @@ const fetchCommunityDetail = async (postId: string) => {
 
     if (!token) throw new Error("로그인이 필요합니다.");
 
-    const response = await fetch(
-      `http://3.36.40.240:8001/api/community/${postId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(`/api/community/${postId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`서버 오류: ${response.status}`);
@@ -147,9 +144,7 @@ const CommunityBoardDetail = ({
           <div
             className="w-12 h-12 rounded-3xl bg-center bg-cover bg-no-repeat flex-shrink-0"
             style={{
-              backgroundImage: `url(${
-                post.writeUserProfileImage || "/images/default-profile.png"
-              })`,
+              backgroundImage: `url(${post.writeUserProfileImage})`,
               backgroundColor: "#d3d3d3",
             }}
           ></div>

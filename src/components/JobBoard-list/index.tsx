@@ -60,7 +60,14 @@ const JobBoardList = () => {
                 {/* 상태 및 아이콘 */}
                 <div className="text-sm flex items-center mt-1 justify-between">
                   <div className="flex space-x-1">
-                    <div className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center" />
+                    <div
+                      className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center bg-cover bg-no-repeat bg-center"
+                      style={{
+                        backgroundImage: `url(${
+                          board.writeUserProfileImage || ""
+                        })`,
+                      }}
+                    />
                     <span className="text-sm text-text-quaternary">
                       {board.writeUserName}
                     </span>

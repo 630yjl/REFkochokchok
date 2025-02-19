@@ -1,14 +1,13 @@
 // src/components/Bookmark/index.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import TabGroup from "./TabGroup";
 import { useMyPosts } from "./hook";
 import PostCard from "./PostCard";
 import { TabType } from "./TabGroup/types";
-import { Post, isBookmarkedPost, isWishlistedPost } from "./PostCard/types";
-
+import { Post } from "./PostCard/types";
 
 export default function BookmarkComponent() {
   // 라우터 초기화
@@ -18,39 +17,7 @@ export default function BookmarkComponent() {
   const [currentTab, setCurrentTab] = useState<TabType>("찜");
 
   // 게시글 데이터 및 상태 가져오기
-  const { posts, loading, error } = useMyPosts(currentTab);
-
-  /**
-   * 상태별 게시글 수 계산
-   * - 메모이제이션으로 불필요한 재계산 방지
-   * - posts 배열이 변경될 때만 재계산
-   * - 모든 탭의 게시글 수를 동시에 계산하여 저장
-   */
-  const postCounts = useMemo(() => {
-    // 기본값 설정
-    const counts = {
-      찜: 0,
-      북마크: 0,
-    };
-
-    // posts가 없는 경우 기본값 반환
-    if (!posts || !Array.isArray(posts)) return counts;
-
-    // 게시글 수 계산 - 전체 posts 배열을 순회하며 각 탭별 카운트
-    return posts.reduce(
-      (acc, post) => {
-        if (isWishlistedPost(post)) {
-          // 커뮤니티 게시글인 경우
-          acc["찜"] += 1;
-        } else if (isBookmarkedPost(post)) {
-          // 후기인 경우
-          acc["북마크"] += 1;
-        }
-        return acc;
-      },
-      { ...counts }
-    ); // 초기값으로 기본 counts 객체의 복사본 사용
-  }, [posts]); // posts 배열이 변경될 때만 재계산
+  const { posts, postCounts, loading, error,  toggleLike,  toggleBookmark   } = useMyPosts(currentTab);
 
   /**
    * 탭 변경 핸들러
@@ -109,7 +76,7 @@ export default function BookmarkComponent() {
         )}
 
         {posts.map((post: Post) => (
-          <PostCard key={post.id} post={post} onPostClick={handlePostClick} />
+          <PostCard key={post.id} post={post} onPostClick={handlePostClick} onToggleLike={toggleLike} onToggleBookmark={toggleBookmark}/>
         ))}
       </div>
     </main>

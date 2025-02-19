@@ -45,20 +45,26 @@ export default function PostCard({
 
   // 🌟 공통 프로필 이미지 렌더링 함수
   // 이미지 로드 실패 시 기본 이미지로 대체하는 로직 구현
-  const renderProfileImage = (imageUrl: string | undefined) => (
-    <div className="relative w-5 h-5 rounded-full overflow-hidden">
-      <Image
-        src={imageUrl || DEFAULT_PROFILE}
-        alt="프로필"
-        fill
-        className="object-cover"
-        onError={(e) => {
-          const target = e.target as HTMLImageElement;
-          target.src = DEFAULT_PROFILE;
-        }}
-      />
-    </div>
-  );
+  const renderProfileImage = (imageUrl: string | undefined) => {
+    console.log(`Profile Image URL: ${imageUrl ?? 'undefined'}`); // 수정된 로깅
+    
+    return (
+      <div className="relative w-5 h-5 rounded-full overflow-hidden">
+        <Image
+          src={imageUrl || DEFAULT_PROFILE}
+          alt="프로필"
+          fill
+          sizes="20px" // 이미지 실제 크기에 맞게 설정
+          className="object-cover"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = DEFAULT_PROFILE;
+            console.log(`Image load failed. URL was: ${imageUrl ?? 'undefined'}`); // 수정된 에러 로깅
+          }}
+        />
+      </div>
+    );
+  };
 
   // 💡 Type Assertion 추가로 타입 명시적 사용
   const currentPost: Post = post;
@@ -104,6 +110,7 @@ export default function PostCard({
                 alt="더보기"
                 width={24}
                 height={24}
+                style={{ width: "auto", height: "auto" }}
                 className="cursor-pointer flex-shrink-0"
                 onClick={handleMoreClick}
               />
@@ -208,6 +215,7 @@ export default function PostCard({
                 alt="더보기"
                 width={24}
                 height={24}
+                style={{ width: "auto", height: "auto" }}
                 className="cursor-pointer flex-shrink-0"
                 onClick={handleMoreClick}
               />

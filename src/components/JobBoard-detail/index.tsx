@@ -9,7 +9,8 @@ import "swiper/css/pagination";
 import useJobBoardDetail from "./hook";
 
 const JobBoardDetail = () => {
-  const { likeButtonClickHandler, boardData, isLiked } = useJobBoardDetail();
+  const { likeButtonClickHandler, boardData, isLiked, handleChat } =
+    useJobBoardDetail();
 
   return (
     <div className="flex flex-col">
@@ -143,7 +144,10 @@ const JobBoardDetail = () => {
             height={56}
           />
         </button>
-        <button className="flex px-5 py-4 justify-center items-center gap-1 flex-1 rounded-xl bg-primary text-base font-bold text-white">
+        <button
+          className="flex px-5 py-4 justify-center items-center gap-1 flex-1 rounded-xl bg-primary text-base font-bold text-white"
+          onClick={handleChat}
+        >
           채팅하기
         </button>
       </div>
