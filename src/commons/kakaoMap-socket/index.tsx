@@ -30,7 +30,7 @@ declare global {
   }
 }
 
-const KakaoMapComponent: React.FC<KakaoMapComponentProps> = ({
+const KakaoMapSocketComponent: React.FC<KakaoMapComponentProps> = ({
   boardId,
   walkEnded,
   isWalking,
@@ -325,4 +325,4 @@ const KakaoMapComponent: React.FC<KakaoMapComponentProps> = ({
   );
 };
 
-export default KakaoMapComponent;
+export default KakaoMapSocketComponent;

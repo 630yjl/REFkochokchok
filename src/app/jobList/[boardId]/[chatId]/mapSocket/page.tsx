@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import Button from "@/commons/Button";
 import { useUserStore } from "@/commons/store/userStore";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import KakaoMapComponent from "@/commons/kakaoMap-socket";
+import { ChatUserDataType } from "@/components/kakaoMap/type";
+import KakaoMapSocketComponent from "@/commons/kakaoMap-socket";
 
 const WalkMap: React.FC = () => {
   const [time, setTime] = useState<number>(0);
@@ -12,10 +15,28 @@ const WalkMap: React.FC = () => {
   const [hasEnded, setHasEnded] = useState<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const timerSocketRef = useRef<Socket | null>(null);
-  const { boardId } = useParams() as { boardId: string };
   const [boardData, setBoardData] = useState<{ writeUserId: number } | null>(
     null
   );
+  const { boardId, chatId } = useParams() as {
+    boardId: string;
+    chatId: string;
+  };
+  const [chatUserData, setChatUserData] = useState<ChatUserDataType | null>(
+    null
+  );
+  const router = useRouter();
+
+  // 엑세스 토큰 가져옴
+  const getAccessToken = (): string | null => {
+    const tokenStorageStr = localStorage.getItem("token-storage");
+    if (!tokenStorageStr) return null;
+    const tokenData = JSON.parse(tokenStorageStr);
+    return tokenData?.accessToken || null;
+  };
+
+  // 로그인 유저정보
+  const loggedInUserId = useUserStore((state) => state.user?.id);
 
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
@@ -27,31 +48,37 @@ const WalkMap: React.FC = () => {
     )}:${String(secs).padStart(2, "0")}`;
   };
 
-  // 게시물 데이터 조회
   useEffect(() => {
-    if (!boardId) return;
-    const token = localStorage.getItem("token-storage")
-      ? JSON.parse(localStorage.getItem("token-storage")!)
-      : null;
-    const fetchBoardData = async () => {
+    const checkParticipant = async () => {
+      const token = getAccessToken();
+      if (!token || !boardId || !chatId || !loggedInUserId) return;
       try {
-        const response = await fetch(`/api/trade/${boardId}`, {
+        const res = await fetch(`/api/trade/${boardId}/chat-rooms/${chatId}`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token?.accessToken}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
-        if (!response.ok)
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.json();
-        setBoardData(data);
+        if (!res.ok) return;
+        const result = await res.json();
+        console.log("ChatUserData result", result);
+        // 참여자가 아닌 경우 바로 리다이렉트
+        if (
+          loggedInUserId !== result.writeUserId &&
+          loggedInUserId !== result.requestUserId
+        ) {
+          alert("접근 권한이 없습니다.");
+          router.push("/");
+        } else {
+          setChatUserData(result);
+        }
       } catch (error) {
-        console.error("[DEBUG] Error fetching board data:", error);
+        console.error("Error checking chat room participants:", error);
       }
     };
-    fetchBoardData();
-  }, [boardId]);
+    checkParticipant();
+  }, [boardId, chatId, loggedInUserId, router]);
 
   // 타이머 및 소켓 연결 (타이머 상태 공유)
   useEffect(() => {
@@ -125,7 +152,7 @@ const WalkMap: React.FC = () => {
     <div className="overflow-hidden">
       {/* 맵 컨테이너 */}
       <div className="w-full h-[calc(100vh-200px)]">
-        <KakaoMapComponent
+        <KakaoMapSocketComponent
           boardId={boardId}
           walkEnded={hasEnded}
           isWalking={isWalking}
